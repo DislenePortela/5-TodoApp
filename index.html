@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TodoApp</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+  <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+    <h1 class="text-2xl font-bold text-center text-gray-700 mb-4">TodoApp</h1>
+    <div class="flex items-center gap-2 mb-4">
+      <input id="taskInput" type="text" placeholder="Adicione uma tarefa..." 
+        class="border border-gray-300 rounded-lg w-full px-3 py-2 focus:outline-none focus:ring focus:ring-indigo-200">
+      <button id="addTaskBtn" class="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600">
+        Adicionar
+      </button>
+    </div>
+
+    <ul id="taskList" class="space-y-2">
+      <!-- Lista de tarefas será preenchida dinamicamente -->
+    </ul>
+  </div>
+
+  <script>
+    // Selecionando elementos
+    const taskInput = document.getElementById('taskInput');
+    const addTaskBtn = document.getElementById('addTaskBtn');
+    const taskList = document.getElementById('taskList');
+
+    // Carregar tarefas do localStorage
+    const loadTasks = () => {
+      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+      taskList.innerHTML = ''; // Limpar lista
+      tasks.forEach((task, index) => renderTask(task, index));
+    };
+
+    // Salvar tarefas no localStorage
+    const saveTasks = (tasks) => {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    };
+
+    // Adicionar tarefa à lista e localStorage
+    const addTask = () => {
+      const taskText = taskInput.value.trim();
+      if (!taskText) return alert('Por favor, insira uma tarefa!');
+      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+      tasks.push({ text: taskText, completed: false });
+      saveTasks(tasks);
+      taskInput.value = '';
+      loadTasks();
+    };
+
+    // Atualizar uma tarefa (editar ou marcar como concluída)
+    const updateTask = (index, updatedTask) => {
+      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+      tasks[index] = updatedTask;
+      saveTasks(tasks);
+      loadTasks();
+    };
+
+    // Remover tarefa da lista e localStorage
+    const deleteTask = (index) => {
+      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+      tasks.splice(index, 1);
+      saveTasks(tasks);
+      loadTasks();
+    };
+
+    // Renderizar uma tarefa na lista
+    const renderTask = (task, index) => {
+      const li = document.createElement('li');
+      li.className = `flex items-center justify-between p-3 rounded-lg ${task.completed ? 'bg-green-100' : 'bg-gray-200'}`;
+
+      // Checkbox para marcar como concluída
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = task.completed;
+      checkbox.className = 'mr-3';
+      checkbox.addEventListener('change', () => {
+        updateTask(index, { ...task, completed: checkbox.checked });
+      });
+
+      // Texto da tarefa
+      const span = document.createElement('span');
+      span.textContent = task.text;
+      span.className = `flex-grow ${task.completed ? 'line-through text-gray-500' : ''}`;
+
+      // Botão de editar
+      const editBtn = document.createElement('button');
+      editBtn.textContent = 'Editar';
+      editBtn.className = 'text-blue-500 hover:underline mr-2';
+      editBtn.addEventListener('click', () => {
+        const newText = prompt('Editar tarefa:', task.text);
+        if (newText) updateTask(index, { ...task, text: newText });
+      });
+
+      // Botão de excluir
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = 'Excluir';
+      deleteBtn.className = 'text-red-500 hover:underline';
+      deleteBtn.addEventListener('click', () => deleteTask(index));
+
+      // Adicionar elementos à tarefa
+      li.appendChild(checkbox);
+      li.appendChild(span);
+      li.appendChild(editBtn);
+      li.appendChild(deleteBtn);
+      taskList.appendChild(li);
+    };
+
+    // Adicionar evento ao botão de adicionar tarefa
+    addTaskBtn.addEventListener('click', addTask);
+
+    // Adicionar tarefa ao pressionar Enter
+    taskInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') addTask();
+    });
+
+    // Carregar tarefas ao iniciar
+    loadTasks();
+  </script>
+</body>
+</html>
